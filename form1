@@ -1,0 +1,390 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.OleDb;
+using System.Media;
+using DataGridViewPrinter;
+
+namespace Ghoreh
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        DataBass db = new DataBass();
+        bool check = true;
+        private void Form1_Load(object sender, EventArgs e)
+        {
+           // button6.BackgroundImage = Image.FromFile("img\\2.png");
+
+            int sd = 8;
+            DataTable dt = new DataTable();
+            dt = db.select("select * From tbl_user");
+            dataGridView1.DataSource = dt;
+
+            dataGridView1.Columns["کد"].Width = 55;
+            dataGridView1.Columns["اسم"].Width = 150;
+
+            if (textBox1.Text.Length == sd)
+            {
+                textBox1.Font = new Font("IRANsans", 8);
+            }
+
+             
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            frmuser fru = new frmuser();
+            fru.ShowDialog();
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            Form1_Load(sender, e);
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.Rows.Count < 1)
+            {
+                MessageBox.Show(".شما تا کنون اسمی ثبت نکردید", "False", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (dataGridView1.Rows.Count > 0)
+            {
+
+                //کد مربوط به حذف کتاب
+                int id;
+                id = int.Parse(dataGridView1.CurrentRow.Cells[0].Value.ToString());
+                if (db.Exe("delete From tbl_user where کد =" + id) == true)
+                {
+                    Form1_Load(sender, e);
+
+                }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            // "DGVPrinter" کد های مربوط به چاپ لیست به کمک کلاس  
+            this.Cursor = Cursors.WaitCursor;
+
+            DGVPrinter printer = new DGVPrinter();
+            printer.CellAlignment = StringAlignment.Center;
+            printer.CellFormatFlags = StringFormatFlags.DirectionRightToLeft;
+
+            printer.PageNumbers = true;
+            printer.PageNumberAlignment = StringAlignment.Center;
+
+            printer.HeaderCellAlignment = StringAlignment.Center;
+            printer.HeaderCellFormatFlags = StringFormatFlags.DirectionRightToLeft;
+
+            printer.PorportionalColumns = true;
+
+            printer.Title = "کد قرعه کشی";
+            printer.TitleAlignment = StringAlignment.Center;
+            printer.TitleColor = Color.Red;
+            printer.TitleFont = new Font("B Zar", 24);
+            printer.TitleFormatFlags = StringFormatFlags.DirectionRightToLeft;
+
+            printer.PrintPreviewDataGridView(dataGridView1);
+            this.Cursor = Cursors.Default;
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+
+            if(check == true)
+            {
+                button6.BackgroundImage = Image.FromFile("img\\1.png");
+                check = false;
+            }
+            else
+            {
+                button6.BackgroundImage = Image.FromFile("img\\2.png");
+                check = true;
+            }
+            
+
+
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            if (MessageBox.Show("آیا می خواهید تمام اسم ها را حذف کنید ؟", "True", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                if (dataGridView1.Rows.Count <= 0)
+                {
+                    MessageBox.Show(".شما تا کنون اسمی ثبت نکردید", "False", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else if (dataGridView1.Rows.Count > 0)
+                {
+
+
+                    //کد مربوط به حذف کتاب
+                    int id;
+                    for (int i = 0; i < dataGridView1.Rows.Count; i++)
+                    {
+                        id = Convert.ToInt32(dataGridView1.Rows[i].Cells[0].Value);
+                        db.Exe("DELETE FROM tbl_user WHERE کد =" + id);
+                        db.Exe("ALTER TABLE tbl_user ALTER COLUMN کد COUNTER(1,1)");
+                    }
+                    Form1_Load(sender, e);
+                }
+            }
+        }
+        private Random rnd = new Random();
+        private int lastSelectedIndex = -1;
+
+        void RandomRecord()
+        {
+           
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+           
+            if (dataGridView1.Rows.Count > 1)
+            {
+                textBox1.Visible = true;
+                timer1.Enabled = true;
+                pictureBox2.Visible = true;
+
+                dataGridView1.CurrentCell = dataGridView1.Rows[1].Cells[1];
+
+                Random rnd = new Random();
+                int rowMax = dataGridView1.Rows.Count;
+                int colMax = dataGridView1.Columns.Count;
+                if (rowMax > 0 && colMax > 0)
+                {
+                    int row = rnd.Next(0, rowMax); //get the random row index
+                    int column = rnd.Next(1, colMax); //get the random column index
+                    dataGridView1.CurrentCell = dataGridView1.Rows[row].Cells[column];
+                    textBox1.Text = dataGridView1.CurrentRow.Cells[1].Value.ToString();
+                    
+                    int id;
+                    id = int.Parse(dataGridView1.CurrentRow.Cells[0].Value.ToString());
+                    if (db.Exe("delete From tbl_user where کد =" + id) == true)
+                    {
+                        Form1_Load(sender, e);
+
+                    }
+                   if(check == true)
+                    {
+                        SoundPlayer sound = new SoundPlayer("sound\\bang.wav");
+                        sound.Play();
+
+                    }
+
+                }
+                
+           
+                
+            }
+            else
+            {
+                MessageBox.Show(".تعداد اسم های ثبت شده کافی نمی باشد", "False", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+           // pictureBox2.BackColor = System.Drawing.Color.Transparent;
+
+
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            /*
+            int x;
+            int y;
+            x = pictureBox2.Location.X;
+            y = pictureBox2.Location.Y;
+            if (y > 19)
+            {
+                pictureBox2.Location = new Point(x, y - 2);
+               
+            }
+           if(y == 20)
+            {
+                timer2.Enabled = true;
+                timer1.Enabled = false;
+            }
+            */
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            /*
+            int x;
+            int y;
+            x = pictureBox2.Location.X;
+            y = pictureBox2.Location.Y;
+            if (y < 138)
+            {
+                pictureBox2.Location = new Point(x, y + 5);
+            }
+            */
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+          
+        }
+
+        private void button6_MouseDown(object sender, MouseEventArgs e)
+        {
+            //button6.BackgroundImage = Image.FromFile("img\\2.png");
+          //  button6.BackgroundImage = Image.FromFile("img\\1.png");
+
+        }
+
+        private void button6_MouseUp(object sender, MouseEventArgs e)
+        {
+           
+        }
+
+        private void button6_MouseEnter(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void button6_MouseLeave(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void button6_MouseMove(object sender, MouseEventArgs e)
+        {
+           
+        }
+
+        private void button6_MouseHover(object sender, EventArgs e)
+        {
+        }
+
+        private void button6_KeyDown(object sender, KeyEventArgs e)
+        {
+          
+
+        }
+
+        private void button6_Enter(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            abute ab = new abute();
+            ab.Show();
+            
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Form2 fr2 = new Form2();
+            Application.Exit();
+            
+            
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+
+            try
+            {
+                Microsoft.Office.Interop.Excel._Application exportDataGridViewToExcelApplication = new Microsoft.Office.Interop.Excel.Application();
+                Microsoft.Office.Interop.Excel._Workbook exportDataGridViewToExcelWorkbook = exportDataGridViewToExcelApplication.Workbooks.Add(Type.Missing);
+                Microsoft.Office.Interop.Excel._Worksheet exportDataGridViewToExcelWorksheet = null;
+                exportDataGridViewToExcelApplication.Visible = true;
+                exportDataGridViewToExcelWorksheet = exportDataGridViewToExcelWorkbook.Sheets["Sheet1"];
+                exportDataGridViewToExcelWorksheet = exportDataGridViewToExcelWorkbook.ActiveSheet;
+                exportDataGridViewToExcelWorksheet.Name = "ExportDataGridViewToExcel";
+
+                try
+                {
+                    //Exporting First Row
+                    //Export all columns except image column
+                    for (int i = 0; i < dataGridView1.Columns.Count; i++)
+                    {
+                        exportDataGridViewToExcelWorksheet.Cells[1, i + 1] = dataGridView1.Columns[i].HeaderText;
+                    }
+
+                    //Exporting Other Rows
+
+                    for (int i = 0; i < dataGridView1.Rows.Count; i++)
+                    {
+                        for (int j = 0; j < dataGridView1.Columns.Count; j++)
+                        {
+                            //Check If a row is empty first
+                            if (dataGridView1.Rows[i].Cells[j].Value != null)
+                            {
+                                //Export From Second Row
+                                exportDataGridViewToExcelWorksheet.Cells[i + 2, j + 1] = dataGridView1.Rows[i].Cells[j].Value.ToString();
+                            }
+                            else
+                            {
+                                //Output Empty String If A Row Is Empty
+                                exportDataGridViewToExcelWorksheet.Cells[i + 2, j + 1] = "";
+                            }
+
+                        }
+                    }
+
+                    //Save Excel File Dialog Box
+                    SaveFileDialog exportDataGridViewToExcelSaveFileDialog = new SaveFileDialog();
+                    //Excel FileName
+                    exportDataGridViewToExcelSaveFileDialog.FileName = "ExportDataGridViewToExcel";
+                    //Default Excel File Extension 
+                    exportDataGridViewToExcelSaveFileDialog.DefaultExt = ".xlsx";
+                    //Dialog Name
+                    exportDataGridViewToExcelSaveFileDialog.Title = "Export DataGridView To Excel";
+                    //Supported File Extension
+                    exportDataGridViewToExcelSaveFileDialog.Filter = "Excel Files (*.xls;*.xlsm;*.xlsx) | *.xls;*.xlsm;*.xlsx";
+
+                    DialogResult exportDataGridViewToExcelDialogResult = exportDataGridViewToExcelSaveFileDialog.ShowDialog();
+                    // If Save Button Is Clicked
+                    if (exportDataGridViewToExcelDialogResult == DialogResult.OK)
+                    {
+                        exportDataGridViewToExcelWorkbook.SaveAs(exportDataGridViewToExcelSaveFileDialog.FileName);
+                        MessageBox.Show("DataGridView Exported To Excel Succsessfully", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                finally
+                {
+                    //Release Resources
+                    exportDataGridViewToExcelWorksheet = null;
+                    exportDataGridViewToExcelWorkbook.Close();
+                    exportDataGridViewToExcelApplication.Quit();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+       
+
+
+   
+    }
+}
